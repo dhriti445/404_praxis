@@ -27,18 +27,37 @@ export function analyzePolicyText(policyText = "") {
     };
   }
 
+  // Guardrail: reject documents that do not look like a privacy policy.
+  const policyContextPatterns = [
+    /privacy\s+policy/i,
+    /personal\s+data/i,
+    /we\s+collect/i,
+    /your\s+data/i,
+    /data\s+subject/i,
+    /data\s+controller/i,
+  ];
+  const policyContextHits = policyContextPatterns.reduce(
+    (hits, pattern) => (pattern.test(text) ? hits + 1 : hits),
+    0
+  );
+
   let score = 100;
   const issues = [];
   const strengths = [];
 
   policySignals.forEach((signal) => {
-    const found = signal.patterns.some((pattern) => pattern.test(text));
+    const signalMatches = signal.patterns.reduce(
+      (hits, pattern) => (pattern.test(text) ? hits + 1 : hits),
+      0
+    );
+    const minimumMatches = Math.min(2, signal.patterns.length);
+    const found = signalMatches >= minimumMatches;
 
     if (found) {
       strengths.push({
         key: signal.key,
         title: signal.label,
-        detail: "Relevant policy language appears to be present.",
+        detail: "Relevant policy language appears to be present with multiple supporting clauses.",
       });
       return;
     }
@@ -53,6 +72,20 @@ export function analyzePolicyText(policyText = "") {
       recommendation: `Add a dedicated section for ${signal.label.toLowerCase()} with concrete user-facing language.`,
     });
   });
+
+  if (policyContextHits < 2) {
+    issues.unshift({
+      key: "not-privacy-policy",
+      title: "Document does not appear to be a privacy policy",
+      severity: "high",
+      penalty: 60,
+      detail:
+        "The uploaded text lacks core privacy-policy context (for example: privacy policy, personal data, or clear data handling sections).",
+      recommendation:
+        "Upload the actual privacy policy document, or verify the PDF has extractable policy text.",
+    });
+    score = Math.min(score, 40);
+  }
 
   score = Math.max(0, score);
 

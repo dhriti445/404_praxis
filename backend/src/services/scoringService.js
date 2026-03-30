@@ -1,4 +1,4 @@
-import { complianceRules } from "../data/complianceRules.js";
+import { getComplianceProfile } from "../data/complianceRules.js";
 
 function classifyRisk(score) {
   if (score >= 85) return "low";
@@ -6,14 +6,25 @@ function classifyRisk(score) {
   return "high";
 }
 
-export function evaluateCompliance(answers = {}) {
+export function evaluateCompliance(answers = {}, role = "startup") {
+  const profile = getComplianceProfile(role);
+  const rules = profile.rules || [];
   let score = 100;
   const violations = [];
   const risks = [];
   const goodPractices = [];
+  const systemChecks = [];
+  let hasCriticalGap = false;
 
-  complianceRules.forEach((rule) => {
+  rules.forEach((rule) => {
     const value = Boolean(answers[rule.key]);
+
+    systemChecks.push({
+      key: rule.key,
+      title: rule.label,
+      passed: value,
+      impactIfMissing: rule.severity,
+    });
 
     if (value) {
       goodPractices.push({
@@ -33,7 +44,14 @@ export function evaluateCompliance(answers = {}) {
       penalty: rule.penalty,
       detail: rule.description,
       recommendation: rule.fixHint,
+      reference: rule.reference,
     };
+
+    if (rule.severity === "critical") {
+      hasCriticalGap = true;
+      violations.push(finding);
+      return;
+    }
 
     if (rule.severity === "high") {
       violations.push(finding);
@@ -43,10 +61,17 @@ export function evaluateCompliance(answers = {}) {
   });
 
   score = Math.max(0, score);
+  const riskLevel = hasCriticalGap ? "critical" : classifyRisk(score);
 
   return {
+    mode: "compliance_check",
+    role: profile.role,
+    target: profile.target,
+    philosophy: profile.philosophy,
+    requiredPolicies: profile.requiredPolicies || [],
+    systemChecks,
     score,
-    riskLevel: classifyRisk(score),
+    riskLevel,
     violations,
     risks,
     goodPractices,

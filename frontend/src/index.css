@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Space+Grotesk:wght@500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,9 +6,9 @@
 
 @layer base {
   :root {
-    font-family: 'Manrope', sans-serif;
+    font-family: 'Plus Jakarta Sans', sans-serif;
     color: #0f172a;
-    background-color: #f1f5f9;
+    background-color: #e7ebf1;
   }
 
   * {
@@ -18,14 +18,193 @@
   body {
     margin: 0;
     min-height: 100vh;
-    font-family: 'Manrope', sans-serif;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: #0f172a;
+    background-color: #e7ebf1;
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'%3E%3Cpath d='M5 3 L5 29 L12 22 L17 33 L22 31 L17 20 L27 20 Z' fill='%23c084fc' stroke='%23a855f7' stroke-width='2.4' stroke-linejoin='round'/%3E%3C/svg%3E") 4 2, auto;
+  }
+
+  a,
+  button,
+  input,
+  textarea,
+  select,
+  [role="button"] {
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'%3E%3Cpath d='M5 3 L5 29 L12 22 L17 33 L22 31 L17 20 L27 20 Z' fill='%23c084fc' stroke='%23a855f7' stroke-width='2.4' stroke-linejoin='round'/%3E%3C/svg%3E") 4 2, pointer;
   }
 
   h1,
   h2,
   h3,
   h4 {
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Sora', sans-serif;
     letter-spacing: -0.02em;
+  }
+
+  .chatbot-fab {
+    background: radial-gradient(circle at 20% 20%, rgba(244, 114, 182, 0.95), rgba(59, 130, 246, 0.9) 55%, rgba(15, 23, 42, 0.92));
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    backdrop-filter: blur(8px);
+    animation: chatbotFloat 2.8s ease-in-out infinite;
+  }
+
+  .chatbot-fab:hover {
+    transform: translateY(-3px) scale(1.04);
+    transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .cool-enter {
+    animation: pageCinematicIn 620ms cubic-bezier(0.2, 0.85, 0.25, 1) both;
+  }
+
+  .ambient-panel {
+    animation: panelAmbientFloat 7s ease-in-out infinite;
+    transform-origin: center;
+    will-change: transform;
+  }
+
+  .cool-button {
+    transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 240ms ease, filter 240ms ease;
+  }
+
+  .cool-button:hover {
+    transform: translateY(-2px) scale(1.04);
+    box-shadow: 0 14px 34px -18px rgba(255, 255, 255, 0.7);
+    filter: brightness(1.03);
+  }
+
+  .lebo-orb {
+    width: clamp(240px, 32vw, 340px);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.85), rgba(244, 114, 182, 0.6) 35%, rgba(99, 102, 241, 0.55) 65%, rgba(15, 23, 42, 0.95) 100%);
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.12),
+      0 36px 72px -28px rgba(236, 72, 153, 0.65),
+      0 24px 56px -24px rgba(99, 102, 241, 0.62);
+    animation: leboOrbPulse 5s ease-in-out infinite;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .lebo-orb::before {
+    content: "";
+    position: absolute;
+    inset: 18%;
+    border-radius: 50%;
+    background: radial-gradient(circle at 40% 40%, rgba(255, 255, 255, 0.4), rgba(168, 85, 247, 0.2), rgba(15, 23, 42, 0));
+    filter: blur(2px);
+    opacity: 0.8;
+  }
+
+  .lebo-orb::after {
+    content: "";
+    position: absolute;
+    inset: 30% 22% 18% 28%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.48), rgba(255, 255, 255, 0));
+    filter: blur(3px);
+    opacity: 0.75;
+  }
+
+  .lebo-orb--nebula {
+    background:
+      radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.85), rgba(244, 114, 182, 0.6) 35%, rgba(99, 102, 241, 0.55) 65%, rgba(15, 23, 42, 0.95) 100%);
+  }
+
+  .lebo-orb--plasma {
+    background:
+      radial-gradient(circle at 30% 26%, rgba(255, 255, 255, 0.85), rgba(251, 146, 60, 0.62) 32%, rgba(239, 68, 68, 0.58) 52%, rgba(168, 85, 247, 0.5) 72%, rgba(15, 23, 42, 0.95) 100%);
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.14),
+      0 30px 60px -28px rgba(251, 146, 60, 0.65),
+      0 18px 40px -24px rgba(239, 68, 68, 0.55);
+  }
+
+  .lebo-orb--aurora {
+    background:
+      radial-gradient(circle at 30% 24%, rgba(255, 255, 255, 0.84), rgba(45, 212, 191, 0.58) 33%, rgba(59, 130, 246, 0.56) 58%, rgba(20, 184, 166, 0.52) 76%, rgba(15, 23, 42, 0.95) 100%);
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.12),
+      0 30px 60px -28px rgba(20, 184, 166, 0.6),
+      0 18px 40px -24px rgba(59, 130, 246, 0.55);
+  }
+
+  .lebo-orb--ember {
+    background:
+      radial-gradient(circle at 31% 24%, rgba(255, 255, 255, 0.83), rgba(245, 158, 11, 0.62) 33%, rgba(236, 72, 153, 0.55) 58%, rgba(244, 63, 94, 0.58) 74%, rgba(15, 23, 42, 0.95) 100%);
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.12),
+      0 30px 60px -28px rgba(245, 158, 11, 0.62),
+      0 18px 40px -24px rgba(244, 63, 94, 0.54);
+  }
+
+  .page-enter {
+    animation: pageFadeSlide 320ms ease-out;
+  }
+
+  @keyframes chatbotFloat {
+    0%,
+    100% {
+      box-shadow: 0 14px 40px -16px rgba(59, 130, 246, 0.6);
+    }
+    50% {
+      box-shadow: 0 18px 50px -14px rgba(236, 72, 153, 0.56);
+    }
+  }
+
+  @keyframes leboOrbPulse {
+    0%,
+    100% {
+      transform: scale(1) rotate(0deg);
+      border-radius: 44% 56% 52% 48% / 45% 49% 51% 55%;
+    }
+    50% {
+      transform: scale(1.05) rotate(6deg);
+      border-radius: 58% 42% 45% 55% / 54% 44% 56% 46%;
+    }
+  }
+
+  @keyframes leboOrbRipple {
+    0% {
+      transform: rotate(0deg) scale(1);
+    }
+    100% {
+      transform: rotate(360deg) scale(1.03);
+    }
+  }
+
+  @keyframes pageFadeSlide {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes pageCinematicIn {
+    from {
+      opacity: 0;
+      transform: translateY(16px) scale(0.985);
+      filter: blur(7px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      filter: blur(0);
+    }
+  }
+
+  @keyframes panelAmbientFloat {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-4px);
+    }
   }
 }

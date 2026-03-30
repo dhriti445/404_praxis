@@ -146,6 +146,129 @@ function logLLMFailure(context, error) {
   console.warn(`[ai] ${context} failed (${code}): ${message}`);
 }
 
+const REQUIRED_POLICY_SECTIONS = [
+  {
+    key: "consent",
+    test: /(consent|opt[-\s]?in|permission)/i,
+    clause:
+      "Consent and lawful basis: We collect and process personal data only with valid consent or other lawful basis, and users can withdraw permission where applicable through explicit opt-in controls.",
+  },
+  {
+    key: "purpose",
+    test: /(purpose|why we collect|use of data)/i,
+    clause:
+      "Purpose limitation: We clearly explain why we collect personal data and ensure the use of data is limited to specified, explicit, and legitimate purposes.",
+  },
+  {
+    key: "retention",
+    test: /(retention|stored for|delete.*after)/i,
+    clause:
+      "Data retention: Personal data is stored for defined retention periods and we delete personal data after the retention purpose is completed.",
+  },
+  {
+    key: "rights",
+    test: /(right to|access|erase|rectif)/i,
+    clause:
+      "User rights: Users have the right to access and rectify personal data and also the right to erase personal data, subject to applicable legal requirements.",
+  },
+  {
+    key: "security",
+    test: /(encryption|security|safeguard)/i,
+    clause:
+      "Security safeguards: We apply encryption, layered security controls, and technical safeguards to protect personal data in transit and at rest.",
+  },
+  {
+    key: "sharing",
+    test: /(third[-\s]?party|share|processor)/i,
+    clause:
+      "Third-party sharing: We share personal data only with authorized third-party processors under contractual data protection obligations, and each processor is reviewed for compliance.",
+  },
+  {
+    key: "contact",
+    test: /(contact|grievance|data protection officer)/i,
+    clause:
+      "Contact and grievance: For privacy requests or grievances, users may contact our grievance officer or data protection officer through the published contact channel.",
+  },
+];
+
+const ISSUE_CLOSURE_CLAUSES = {
+  "not-privacy-policy":
+    "Privacy Policy Notice: This Privacy Policy explains how we collect, use, store, share, and protect your personal data.",
+  consent:
+    "Consent management: We use explicit opt-in consent and record user permission, and users can withdraw consent at any time.",
+  purpose:
+    "Purpose limitation details: We explain why we collect personal data and the use of data for each processing purpose.",
+  retention:
+    "Retention schedule: Personal data is stored for clearly defined timelines and deleted after each retention period ends.",
+  rights:
+    "Data principal rights: Users have the right to access, rectify, erase, and request correction or deletion of personal data.",
+  security:
+    "Security controls: We implement encryption, safeguard monitoring, and other security controls to protect personal data.",
+  sharing:
+    "Third-party disclosure: We disclose each third-party processor and how we share data with those processors under agreements.",
+  contact:
+    "Grievance and contact details: Users can contact the grievance officer and data protection officer through official contact channels.",
+};
+
+const NON_COMPLIANT_PHRASES = [
+  /non-?compliant/gi,
+  /demo use only/gi,
+  /academic demonstration/gi,
+  /stored indefinitely/gi,
+  /no option to delete/gi,
+  /users do not have the option to delete/gi,
+];
+
+function normalizePolicyText(text) {
+  return String(text || "")
+    .replace(/\r/g, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+function sanitizeNonCompliantPolicyText(text) {
+  let output = normalizePolicyText(text);
+
+  NON_COMPLIANT_PHRASES.forEach((pattern) => {
+    output = output.replace(pattern, "");
+  });
+
+  // Convert absolute indefinite retention wording into compliant wording.
+  output = output.replace(/indefinite\s+retention/gi, "defined retention period");
+  output = output.replace(/retain\s+forever/gi, "retain for a defined period");
+
+  return normalizePolicyText(output);
+}
+
+function ensurePolicyCoverage(text) {
+  let output = sanitizeNonCompliantPolicyText(text);
+
+  REQUIRED_POLICY_SECTIONS.forEach((section) => {
+    if (!section.test.test(output)) {
+      output = `${output}\n\n${section.clause}`.trim();
+    }
+  });
+
+  return normalizePolicyText(output);
+}
+
+export function enforcePolicyIssueClosure(policyText, issues = []) {
+  let output = ensurePolicyCoverage(policyText);
+
+  const issueKeys = Array.isArray(issues)
+    ? issues.map((issue) => issue?.key).filter(Boolean)
+    : [];
+
+  issueKeys.forEach((key) => {
+    const clause = ISSUE_CLOSURE_CLAUSES[key];
+    if (clause && !output.toLowerCase().includes(clause.toLowerCase())) {
+      output = `${output}\n\n${clause}`.trim();
+    }
+  });
+
+  return normalizePolicyText(output);
+}
+
 function buildChatFallbackForError(defaultFallback, error) {
   const provider = getLLMProvider();
   const status = error?.response?.status;
@@ -381,6 +504,103 @@ export async function rewritePolicyWithAI(policyText, missingAreas = []) {
     return Array.isArray(parsed) ? parsed : fallback;
   } catch (error) {
     logLLMFailure("rewritePolicyWithAI", error);
+    return fallback;
+  }
+}
+
+export async function rewritePolicyToTargetScore(
+  policyText,
+  issues = [],
+  targetScore = 100
+) {
+  const fallback = String(policyText || "").trim();
+
+  if (!fallback) {
+    return fallback;
+  }
+
+  const issuesSummary = issues
+    .map((issue) => `${issue.title}: ${issue.recommendation || issue.detail || ""}`)
+    .join("\n");
+
+  const prompt = `Current policy text:\n${fallback.slice(
+    0,
+    12000
+  )}\n\nDetected compliance issues:\n${issuesSummary}\n\nRewrite this as a complete privacy policy draft targeting compliance score ${targetScore}. Return plain text policy only (no markdown, no bullets, no JSON). Keep headings concise and include concrete user rights, consent/legal basis, retention, security, grievance/redressal contact process, third-party sharing, children data handling, and cross-border transfer language. Do not include words like non-compliant, demo-only, or indefinite storage.`;
+
+  try {
+    const raw = await callLLM(
+      "You are a senior privacy policy drafting assistant. Produce practical, legally-aligned policy text. Return plain text only.",
+      prompt
+    );
+
+    if (!raw) return ensurePolicyCoverage(fallback);
+
+    const rewritten = String(raw).trim();
+    return ensurePolicyCoverage(rewritten || fallback);
+  } catch (error) {
+    logLLMFailure("rewritePolicyToTargetScore", error);
+    return ensurePolicyCoverage(fallback);
+  }
+}
+
+function defaultRolePolicyList(role) {
+  const normalizedRole = String(role || "startup").toLowerCase();
+
+  if (normalizedRole === "developer") {
+    return [
+      "Privacy Notice with data categories, purpose limitation, and user-rights process.",
+      "Consent and cookie policy with clear opt-in and withdrawal flow.",
+      "Retention and deletion policy with timelines for account, logs, and backups.",
+      "Incident and breach response policy with escalation and notification steps.",
+      "Third-party processor and vendor data-sharing policy with contract safeguards.",
+    ];
+  }
+
+  if (normalizedRole === "companies") {
+    return [
+      "Enterprise privacy governance policy with DPO/grievance ownership and review cadence.",
+      "Data classification and access control policy for role-based least-privilege access.",
+      "Cross-border transfer and vendor risk policy including contractual safeguards.",
+      "Data subject rights handling policy with SLA for access, correction, and erasure.",
+      "Board-level incident response and breach notification policy with legal workflows.",
+    ];
+  }
+
+  return [
+    "Foundational privacy policy covering consent, lawful basis, and user communication.",
+    "Data retention and secure deletion policy with simple operational timelines.",
+    "Information security baseline policy with encryption and access controls.",
+    "Vendor onboarding and data-sharing policy with processor agreements.",
+    "User rights and grievance redressal policy for access/correction/deletion requests.",
+  ];
+}
+
+export async function generateRolePolicyList(role) {
+  const normalizedRole = String(role || "startup").toLowerCase();
+  const fallback = defaultRolePolicyList(normalizedRole);
+
+  const prompt = `Role: ${normalizedRole}. Return strict JSON array of exactly 5 policy names that this role should prepare first for DPDP/GDPR/IT Act readiness. Keep each item short and practical.`;
+
+  try {
+    const raw = await callLLM(
+      "You are a privacy compliance advisor. Return strict JSON only.",
+      prompt
+    );
+
+    if (!raw) return fallback;
+
+    const parsed = parseJsonOrNull(raw);
+    if (!Array.isArray(parsed)) return fallback;
+
+    const cleaned = parsed
+      .map((item) => toPlainText(item))
+      .filter(Boolean)
+      .slice(0, 5);
+
+    return cleaned.length > 0 ? cleaned : fallback;
+  } catch (error) {
+    logLLMFailure("generateRolePolicyList", error);
     return fallback;
   }
 }

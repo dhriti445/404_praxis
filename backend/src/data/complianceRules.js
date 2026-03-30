@@ -1,85 +1,233 @@
-export const complianceRules = [
-  {
-    key: "consentCollection",
-    label: "Explicit consent collection",
-    penalty: 25,
-    severity: "high",
-    description:
-      "Data is collected without an explicit and auditable consent mechanism.",
-    fixHint:
-      "Add explicit opt-in consent checkboxes with versioned consent logs and timestamps.",
+export const roleComplianceProfiles = {
+  developer: {
+    role: "developer",
+    heading: "Developer Mode",
+    target: "Individual developers and small apps",
+    philosophy: "Do minimum but do not violate the law.",
+    requiredPolicies: [
+      { title: "Basic Consent", reference: "DPDP Sec 6, GDPR Art 7" },
+      { title: "Minimal Data Collection", reference: "GDPR Art 5" },
+      { title: "Basic Privacy Notice", reference: "DPDP Sec 5" },
+      { title: "No Sensitive Data Storage", reference: "IT Act 43A" },
+      { title: "Basic Security (HTTPS + password safety)", reference: "IT Act 43A" },
+    ],
+    rules: [
+      {
+        key: "consentCollection",
+        label: "Consent is taken before data collection",
+        penalty: 35,
+        severity: "high",
+        description: "Consent is not collected before processing personal data.",
+        fixHint: "Add an explicit consent checkbox before personal data submission.",
+        reference: "DPDP Sec 6, GDPR Art 7",
+      },
+      {
+        key: "minimalDataCollection",
+        label: "Only minimum data is collected",
+        penalty: 20,
+        severity: "medium",
+        description: "Data collection goes beyond minimum fields such as name and email.",
+        fixHint: "Collect only required identity/contact fields and remove extra inputs.",
+        reference: "GDPR Art 5",
+      },
+      {
+        key: "avoidSensitiveDataStorage",
+        label: "Sensitive data storage is avoided",
+        penalty: 35,
+        severity: "high",
+        description: "Sensitive data (biometric, financial, health) is stored without safeguards.",
+        fixHint: "Stop storing sensitive categories unless strictly required and legally justified.",
+        reference: "IT Act 43A",
+      },
+      {
+        key: "basicSecurityHttps",
+        label: "Basic security is present (HTTPS and password safety)",
+        penalty: 15,
+        severity: "medium",
+        description: "HTTPS or password storage baseline controls are missing.",
+        fixHint: "Enforce HTTPS and never store plain text passwords.",
+        reference: "IT Act 43A",
+      },
+    ],
   },
-  {
-    key: "dataEncryption",
-    label: "Data encryption at rest and in transit",
-    penalty: 20,
-    severity: "high",
-    description:
-      "Sensitive data is not consistently encrypted in storage and network transport.",
-    fixHint:
-      "Use TLS for all transport and AES-256 encryption for stored personal data.",
+  startup: {
+    role: "startup",
+    heading: "Startup Mode",
+    target: "Growing apps and SaaS products",
+    philosophy: "Build trust and avoid legal risk.",
+    requiredPolicies: [
+      { title: "Proper Consent System (explicit + revocable)", reference: "DPDP Sec 6" },
+      { title: "Full Privacy Policy Page", reference: "GDPR Art 13" },
+      { title: "Data Retention Policy", reference: "GDPR Art 5" },
+      { title: "User Rights Handling", reference: "DPDP Sec 11-13" },
+      { title: "Data Security Policy", reference: "DPDP Sec 8" },
+      { title: "Third-party Disclosure", reference: "IT Act 72A" },
+      { title: "Basic Logging", reference: "Accountability baseline" },
+    ],
+    rules: [
+      {
+        key: "consentCollection",
+        label: "Proper consent system is implemented",
+        penalty: 15,
+        severity: "medium",
+        description: "Consent is not explicit, revocable, and auditable.",
+        fixHint: "Implement explicit consent with withdrawal and consent logs.",
+        reference: "DPDP Sec 6",
+      },
+      {
+        key: "privacyPolicyPage",
+        label: "Full privacy policy page is present",
+        penalty: 25,
+        severity: "high",
+        description: "Privacy policy is missing or does not explain usage, storage, and sharing.",
+        fixHint: "Publish a complete privacy policy page covering collection, use, storage, and sharing.",
+        reference: "GDPR Art 13",
+      },
+      {
+        key: "retentionPolicy",
+        label: "Retention policy is defined",
+        penalty: 25,
+        severity: "high",
+        description: "Retention timelines are not defined.",
+        fixHint: "Define and publish retention timelines for each data category.",
+        reference: "GDPR Art 5",
+      },
+      {
+        key: "dataDeletionWorkflow",
+        label: "Delete option and rights handling are available",
+        penalty: 25,
+        severity: "high",
+        description: "Users cannot delete accounts or request data actions.",
+        fixHint: "Add account deletion and rights request flows with SLA.",
+        reference: "DPDP Sec 11-13",
+      },
+      {
+        key: "dataEncryption",
+        label: "Data security controls are implemented",
+        penalty: 15,
+        severity: "medium",
+        description: "Encryption or secure password/database controls are weak.",
+        fixHint: "Use encryption, hashed passwords, and secure database configuration.",
+        reference: "DPDP Sec 8",
+      },
+      {
+        key: "thirdPartyDisclosure",
+        label: "Third-party sharing is disclosed",
+        penalty: 10,
+        severity: "medium",
+        description: "Users are not informed about third-party sharing.",
+        fixHint: "Disclose processor/third-party sharing in policy and notices.",
+        reference: "IT Act 72A",
+      },
+      {
+        key: "basicLogging",
+        label: "Basic access/change logging is present",
+        penalty: 10,
+        severity: "medium",
+        description: "Access and change activity is not logged.",
+        fixHint: "Maintain baseline access and change logs for accountability.",
+        reference: "Operational accountability",
+      },
+    ],
   },
-  {
-    key: "dataDeletionWorkflow",
-    label: "User data deletion workflow",
-    penalty: 15,
-    severity: "medium",
-    description:
-      "There is no clear or testable process to delete user data on request.",
-    fixHint:
-      "Implement a deletion workflow with SLA, audit logs, and user confirmation.",
+  companies: {
+    role: "companies",
+    heading: "Company Mode",
+    target: "Enterprises and large-scale systems",
+    philosophy: "Legal compliance plus audit readiness.",
+    requiredPolicies: [
+      { title: "Advanced Consent Management", reference: "GDPR Art 7" },
+      { title: "Data Protection Officer assignment", reference: "GDPR Art 37, DPDP Sec 10" },
+      { title: "Data Protection Impact Assessment", reference: "GDPR Art 35" },
+      { title: "Breach Notification System (72 hours)", reference: "GDPR Art 33" },
+      { title: "Cross-border Data Compliance", reference: "GDPR Art 44" },
+      { title: "Audit and Accountability", reference: "GDPR Art 5(2)" },
+      { title: "Child Data Protection", reference: "DPDP Sec 9" },
+      { title: "Advanced Security Controls", reference: "Industry baseline" },
+    ],
+    rules: [
+      {
+        key: "advancedConsentManagement",
+        label: "Advanced consent management exists",
+        penalty: 10,
+        severity: "medium",
+        description: "Granular consent and consent logs are not implemented.",
+        fixHint: "Implement purpose-level consent with immutable consent logs.",
+        reference: "GDPR Art 7",
+      },
+      {
+        key: "dpOfficerAssigned",
+        label: "DPO is assigned",
+        penalty: 20,
+        severity: "high",
+        description: "Data protection officer/owner is not assigned.",
+        fixHint: "Assign a DPO or equivalent accountable privacy function.",
+        reference: "GDPR Art 37, DPDP Sec 10",
+      },
+      {
+        key: "dpiaConducted",
+        label: "DPIA is conducted",
+        penalty: 20,
+        severity: "high",
+        description: "DPIA process is missing for high-risk processing.",
+        fixHint: "Adopt DPIA workflow before high-risk personal data processing.",
+        reference: "GDPR Art 35",
+      },
+      {
+        key: "breachNotification72h",
+        label: "Breach plan meets 72-hour requirement",
+        penalty: 30,
+        severity: "critical",
+        description: "No tested breach notification plan exists for 72-hour response.",
+        fixHint: "Create and test a legal + technical breach response runbook.",
+        reference: "GDPR Art 33",
+      },
+      {
+        key: "crossBorderCompliance",
+        label: "Cross-border compliance is implemented",
+        penalty: 15,
+        severity: "medium",
+        description: "Cross-border transfer controls are undefined.",
+        fixHint: "Document transfer mechanisms and processor safeguards.",
+        reference: "GDPR Art 44",
+      },
+      {
+        key: "auditLogsMaintained",
+        label: "Audit logs are maintained",
+        penalty: 20,
+        severity: "high",
+        description: "Compliance-proof audit logs are not maintained.",
+        fixHint: "Maintain tamper-resistant logs for access, changes, and incidents.",
+        reference: "GDPR Art 5(2)",
+      },
+      {
+        key: "childDataSafeguards",
+        label: "Child data protections are in place",
+        penalty: 10,
+        severity: "medium",
+        description: "Parental consent and child data protections are not defined.",
+        fixHint: "Implement age checks and parental consent process.",
+        reference: "DPDP Sec 9",
+      },
+      {
+        key: "advancedSecurity",
+        label: "Advanced security controls are active",
+        penalty: 10,
+        severity: "medium",
+        description: "Monitoring, access control, or encryption controls are incomplete.",
+        fixHint: "Enable advanced encryption, monitoring, and least-privilege controls.",
+        reference: "Enterprise security baseline",
+      },
+    ],
   },
-  {
-    key: "retentionPolicy",
-    label: "Documented retention policy",
-    penalty: 12,
-    severity: "medium",
-    description:
-      "Retention timelines are not communicated, enforced, or reviewed.",
-    fixHint:
-      "Define category-wise retention periods and auto-purge or archive procedures.",
-  },
-  {
-    key: "userRightsAccess",
-    label: "User rights handling (access/rectification/erasure)",
-    penalty: 10,
-    severity: "medium",
-    description:
-      "Users cannot easily exercise legal rights on their personal data.",
-    fixHint:
-      "Provide rights request channels and a verified response workflow.",
-  },
-  {
-    key: "breachNotification",
-    label: "Breach detection and notification process",
-    penalty: 8,
-    severity: "medium",
-    description:
-      "Incident response does not include a structured breach notification process.",
-    fixHint:
-      "Create an incident runbook with legal notification timelines and accountability.",
-  },
-  {
-    key: "childDataSafeguards",
-    label: "Child data safeguards",
-    penalty: 5,
-    severity: "low",
-    description:
-      "Child data controls and parental consent safeguards are not defined.",
-    fixHint:
-      "Apply age-gating and parental consent checks where child data may be collected.",
-  },
-  {
-    key: "dpOfficerAssigned",
-    label: "Data protection ownership",
-    penalty: 5,
-    severity: "low",
-    description:
-      "No responsible role is assigned for privacy governance and escalation.",
-    fixHint:
-      "Assign a privacy lead and define governance responsibilities.",
-  },
-];
+};
+
+export function getComplianceProfile(role = "startup") {
+  const normalizedRole = String(role || "startup").toLowerCase();
+  return roleComplianceProfiles[normalizedRole] || roleComplianceProfiles.startup;
+}
+
+export const complianceRules = roleComplianceProfiles.startup.rules;
 
 export const policySignals = [
   {

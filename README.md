@@ -1,6 +1,6 @@
-# DPDP Compliance & Data Protection Intelligence Bot
+# LeBo - Legal Compliance & Data Protection Platform
 
-A full-stack AI-powered compliance platform that helps teams interpret and implement DPDP Act 2023, GDPR, and IT Act privacy expectations through measurable reports and actionable fixes.
+An AI-powered compliance platform that helps teams interpret and implement DPDP Act 2023, GDPR, and IT Act privacy requirements through measurable reports and actionable fixes.
 
 ## What This Project Includes
 

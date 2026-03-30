@@ -17,7 +17,7 @@ export default function ReportsPage() {
 
   return (
     <section className="space-y-6">
-      <div>
+      <div className="rounded-3xl border border-slate-300/50 bg-white/75 p-6 shadow-soft backdrop-blur-xl">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Results / Report View</p>
         <h1 className="mt-2 text-3xl font-bold text-slate-900">Recent Compliance Reports</h1>
       </div>

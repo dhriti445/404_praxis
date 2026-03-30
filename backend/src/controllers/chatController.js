@@ -21,10 +21,16 @@ export async function chatHistoryHandler(req, res) {
       return res.json({ history: [] });
     }
 
+    const savedConversation = Array.isArray(latest?.result?.conversation)
+      ? latest.result.conversation
+      : null;
+
     const priorHistory = Array.isArray(latest?.input?.history)
       ? latest.input.history
       : [];
-    const history = [...priorHistory, { role: "assistant", text: latest.result }];
+    const history =
+      savedConversation ||
+      [...priorHistory, { role: "assistant", text: latest?.result?.reply || latest.result }];
 
     return res.json({
       history,
@@ -44,9 +50,10 @@ export async function chatHandler(req, res) {
     }
 
     const reply = await generateChatResponse(message, history);
+    const conversation = [...history, { role: "assistant", text: reply }];
 
     try {
-      await saveReport("chat", { message, history }, reply);
+      await saveReport("chat", { message, history }, { reply, conversation });
     } catch {
       // Storage can fail in restricted environments; reply should still succeed.
     }

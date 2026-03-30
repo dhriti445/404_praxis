@@ -1,8 +1,8 @@
 {
-  "name": "praxis",
+  "name": "lebo",
   "version": "1.0.0",
   "private": true,
-  "description": "DPDP Compliance & Data Protection Intelligence Bot",
+  "description": "LeBo - Legal Compliance & Data Protection Platform",
   "scripts": {
     "dev": "concurrently \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
     "dev:frontend": "npm run dev --prefix frontend",
